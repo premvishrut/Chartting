@@ -1,0 +1,62 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #e5ddd5;
+  margin: 0;
+  padding: 0;
+}
+
+#login, #chat {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+
+#messages {
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 10px;
+  max-height: 400px;
+  overflow-y: scroll;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+#messages li {
+  padding: 8px;
+  margin-bottom: 5px;
+  border-radius: 10px;
+  background: #dcf8c6;
+  position: relative;
+}
+
+.msg-user {
+  font-weight: bold;
+  color: #075e54;
+}
+
+.msg-time {
+  float: right;
+  font-size: 0.75em;
+  color: #999;
+}
+
+form {
+  display: flex;
+  gap: 5px;
+}
+
+input[type="text"], input[type="file"] {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+button {
+  background: #25d366;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
