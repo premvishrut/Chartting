@@ -1,93 +1,47 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const http = require('http');
+const path = require('path');
 const socketIO = require('socket.io');
-const upload = require('./upload');
-const authenticate = require('./auth');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-const PORT = process.env.PORT || 3000;
 
-app.use(express.static('public'));
-app.use('/upload', express.static('upload'));
+// Serve static files (HTML, CSS, JS) from /public
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 🔐 LOGIN route
+// Dummy login using users.json
 app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  if (authenticate(username, password)) {
-    res.status(200).json({ success: true });
-  } else {
-    res.status(401).json({ success: false, message: "Invalid credentials" });
-  }
-});
-
-// 🆕 SIGNUP route
-app.post('/signup', (req, res) => {
-  const { username, password } = req.body;
-  const usersPath = path.join(__dirname, 'users.json');
-
-  if (!username || !password) {
-    return res.status(400).json({ success: false, message: "Missing credentials" });
-  }
-
-  let users = [];
-  if (fs.existsSync(usersPath)) {
-    users = JSON.parse(fs.readFileSync(usersPath));
-  }
-
-  const exists = users.find(u => u.username === username);
-  if (exists) {
-    return res.status(409).json({ success: false, message: "Username already taken" });
-  }
-
-  users.push({ username, password });
-  fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
-  res.status(201).json({ success: true });
-});
-
-// 📸 Image upload route
-app.post('/upload', upload.single('image'), (req, res) => {
-  if (req.file) {
-    return res.json({ path: `/upload/${req.file.filename}` });
-  }
-  res.status(400).send('Upload failed');
-});
-
-// 🔌 Socket.io Chat
-io.on('connection', (socket) => {
-  socket.on('join', (username) => {
-    socket.username = username;
-    socket.broadcast.emit('chat message', {
-      user: 'Server',
-      text: `${username} joined the chat`,
-      time: new Date().toLocaleTimeString()
-    });
-  });
-
-  socket.on('chat message', (msg) => {
-    io.emit('chat message', {
-      user: socket.username || 'Anonymous',
-      text: msg.text || msg,
-      time: new Date().toLocaleTimeString()
-    });
-  });
-
-  socket.on('disconnect', () => {
-    if (socket.username) {
-      socket.broadcast.emit('chat message', {
-        user: 'Server',
-        text: `${socket.username} left the chat`,
-        time: new Date().toLocaleTimeString()
-      });
+    const { username, password } = req.body;
+    const users = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+    const user = users.find(u => u.username === username && u.password === password);
+    if (user) {
+        res.redirect('/');
+    } else {
+        res.status(401).send('Invalid credentials');
     }
-  });
 });
 
-// 🚀 Start server
+// Default route - serve index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// WebSocket chat
+io.on('connection', socket => {
+    console.log('A user connected');
+    socket.on('chat message', msg => {
+        io.emit('chat message', msg);
+    });
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
+});
+
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
