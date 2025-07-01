@@ -6,24 +6,24 @@
 <body>
   <h2>Login to Chat</h2>
   <input id="username" placeholder="Username" />
-  <input id="password" placeholder="Password" type="password" />
+  <input id="password" type="password" placeholder="Password" />
   <button onclick="login()">Login</button>
 
   <script>
     function login() {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
 
       fetch('/login', {
         method: 'POST',
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       }).then(res => {
         if (res.ok) {
-          localStorage.setItem("username", username);
-          window.location.href = "index.html";
+          localStorage.setItem('username', username);
+          window.location.href = 'index.html';
         } else {
-          alert("Invalid login");
+          alert('Invalid credentials');
         }
       });
     }
